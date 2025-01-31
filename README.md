@@ -33,7 +33,7 @@ A powerful web application for designing system architectures through an intuiti
 
 ## Tech Stack
 
-- **Frontend Framework**: Next.js 13 with App Router
+- **Frontend Framework**: Next.js with App Router
 - **UI Components**: shadcn/ui + Tailwind CSS
 - **Flowchart Engine**: React Flow
 - **Icons**: Lucide React
