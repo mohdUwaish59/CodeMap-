@@ -1,4 +1,5 @@
-# Architecture Flow Designer
+# CodeMap
+## Map your logic, generate your code.
 
 A powerful web application for designing system architectures through an intuitive flowchart interface with AI-powered code generation capabilities.
 
