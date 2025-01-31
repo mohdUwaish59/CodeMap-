@@ -6,6 +6,8 @@ import { Card } from '@/components/ui/card';
 import { Loader2, Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { generateCode } from '../services/openai';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { CodeBlock } from '@/components/flowchart/components/CodeBlock';
 
 interface CodeGenerationProps {
   flowDescription: string;
@@ -18,7 +20,7 @@ export default function CodeGeneration({ flowDescription }: CodeGenerationProps)
 
   const handleGenerateCode = async () => {
     if (!flowDescription) {
-      setGeneratedCode('Please create a flowchart first before generating code.');
+      setGeneratedCode('```\nPlease create a flowchart first before generating code.\n```');
       return;
     }
 
@@ -28,7 +30,7 @@ export default function CodeGeneration({ flowDescription }: CodeGenerationProps)
       setGeneratedCode(code);
     } catch (error) {
       console.error('Error:', error);
-      setGeneratedCode('Failed to generate code. Please try again.');
+      setGeneratedCode('```\nFailed to generate code. Please try again.\n```');
     } finally {
       setIsGenerating(false);
     }
@@ -41,7 +43,7 @@ export default function CodeGeneration({ flowDescription }: CodeGenerationProps)
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6">
+    <div className="w-full max-w-6xl mx-auto p-6">
       <Card className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Generated Code</h2>
@@ -58,7 +60,7 @@ export default function CodeGeneration({ flowDescription }: CodeGenerationProps)
                 ) : (
                   <Copy className="h-4 w-4 mr-2" />
                 )}
-                {copied ? 'Copied!' : 'Copy Code'}
+                {copied ? 'Copied!' : 'Copy All'}
               </Button>
             )}
             <Button
@@ -77,18 +79,41 @@ export default function CodeGeneration({ flowDescription }: CodeGenerationProps)
           </div>
         </div>
 
-        {generatedCode ? (
-          <div className="prose prose-sm max-w-none dark:prose-invert">
-            <ReactMarkdown>{generatedCode}</ReactMarkdown>
-          </div>
-        ) : (
-          <div className="text-center text-muted-foreground py-12">
-            {flowDescription ? 
-              'Click "Generate Code" to create code based on your flowchart' :
-              'Create a flowchart first to generate code'
-            }
-          </div>
-        )}
+        <ScrollArea className="h-[calc(100vh-12rem)] rounded-md border">
+          {generatedCode ? (
+            <div className="p-4">
+              <ReactMarkdown
+                components={{
+                  pre: ({ children }) => children,
+                  code: ({ children, className }) => {
+                    if (typeof children !== 'string') return null;
+                    
+                    const language = (className?.replace('language-', '') || 'typescript').toLowerCase();
+                    const [filename, ...codeLines] = children.split('\n');
+                    const code = codeLines.join('\n');
+                    
+                    return (
+                      <CodeBlock
+                        code={code}
+                        language={language}
+                        filename={filename.startsWith('/') ? filename : undefined}
+                      />
+                    );
+                  },
+                }}
+              >
+                {generatedCode}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground py-12">
+              {flowDescription ? 
+                'Click "Generate Code" to create implementation code based on your architecture' :
+                'Create a flowchart first to generate code'
+              }
+            </div>
+          )}
+        </ScrollArea>
       </Card>
     </div>
   );

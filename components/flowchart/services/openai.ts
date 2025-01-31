@@ -5,52 +5,54 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
-export async function generateCode(flowchartJSON: string, language: string = "Python"): Promise<string> {
+export async function generateCode(systemArchitecture: string): Promise<string> {
   try {
-    const prompt = `
-      You are an intelligent AI agent specialized in translating flowcharts into structured, efficient, and optimized code. 
-      You will receive a JSON representation of a flowchart, which describes an algorithm using nodes and connections. 
-      Your task is to analyze this JSON, understand the logical flow, and generate high-quality, well-commented, and efficient code in the specified programming language.
-
-      ### **Guidelines for Code Generation:**
-      1. **Understand the JSON Structure:**
-         - The JSON contains nodes representing operations, conditions, loops, function calls, and outputs.
-         - Each node has a unique ID and specifies its type (e.g., "start", "process", "decision", "loop", "end").
-         - The connections define the logical sequence of execution.
-
-      2. **Interpret Control Flow:**
-         - Maintain correct execution order based on node connections.
-         - Implement **conditional branches** (if-else statements) for decision nodes.
-         - Implement **loops** (for, while) when encountering loop nodes.
-         - Implement **function calls** for modularization if functions are present.
-
-      3. **Generate Readable & Efficient Code:**
-         - Use meaningful variable names based on the flowchart.
-         - Write structured, well-commented, and readable code.
-         - Optimize repetitive structures using functions where needed.
-         - Ensure proper indentation and syntax.
-
-      4. **Output Format:**
-         - Provide a clean, executable code snippets.
-         - Include necessary imports (if required).
-         - Ensure the main function (if applicable) is properly structured.
-
-      ### **Flowchart JSON Input:**
-      ${flowchartJSON}
-
-      Now, based on the provided flowchart, generate optimized and structured code. Do not leave anything for user to add in the logic. Always generate full and complete logic.**.
-    `;
-
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "You are an expert AI that converts flowcharts into high-quality, production-ready code."
+          content: `You are an expert software architect and developer. Generate production-ready, fully implemented code based on the provided system architecture JSON. 
+          
+          CRITICAL REQUIREMENTS:
+          - Generate COMPLETE, detailed implementation code with full business logic
+          - Include ALL necessary files, configurations, and dependencies
+          - Implement proper error handling, logging, and monitoring
+          - Follow best practices for security, performance, and scalability
+          - Use TypeScript for type safety
+          - Include comprehensive unit tests
+          - Add Docker configuration for containerization
+          - Include CI/CD pipeline configuration
+          - Add detailed comments explaining complex logic
+          - Implement proper validation and sanitization
+          - Add proper environment configuration
+          - Include database migrations and seeds
+          - Implement caching where appropriate
+          - Add rate limiting and security measures
+          - Include API documentation
+          - Implement proper authentication and authorization
+          - Add monitoring and logging setup
+          - Include load balancing configuration where needed
+          
+          RESPONSE FORMAT:
+          - ONLY output code blocks with file paths as headers
+          - NO explanatory text or descriptions
+          - NO markdown outside of code blocks
+          - Each file should be in a code block with its path as the header
+          
+          Example:
+          \`\`\`/src/server/index.ts
+          // Server implementation
+          \`\`\`
+          
+          \`\`\`/src/types/index.ts
+          // Type definitions
+          \`\`\`
+          `
         },
         {
           role: "user",
-          content: prompt
+          content: `Generate complete production-ready implementation for this architecture: ${systemArchitecture}`
         }
       ],
       temperature: 0.7,
