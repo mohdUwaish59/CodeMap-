@@ -44,7 +44,7 @@ A powerful web application for designing system architectures through an intuiti
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/architecture-flow-designer.git
+   git clone https://github.com/mohdUwaish59/CodeMap-.git
    ```
 
 2. Install dependencies:
