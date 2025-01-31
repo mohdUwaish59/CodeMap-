@@ -1,0 +1,13 @@
+.react-flow {
+  background: #f9f9f9;
+}
+
+.react-flow__node {
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.react-flow__edge-path {
+  stroke-width: 2;
+}
