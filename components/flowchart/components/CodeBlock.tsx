@@ -41,7 +41,7 @@ export function CodeBlock({ code, language, filename }: CodeBlockProps) {
           )}
         </Button>
         <Highlight
-          theme={themes.duotoneLight}
+          theme={themes.nightOwl}
           code={code.trim()}
           language={language}
         >

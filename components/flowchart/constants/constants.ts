@@ -12,22 +12,11 @@ import {
   Cloud,
   Lock,
   Users,
-  RectangleHorizontal,
-  Diamond,
-  Squircle
 } from 'lucide-react';
 import { ComponentCategory } from '../types/flowchart.types';
 import { Node, Edge } from 'reactflow';
 
 export const componentCategories: ComponentCategory[] = [
-  {
-    title: 'Flowchart',
-    components: [
-      { type: 'Input/Output', icon: Squircle, description: 'Input/Output' },
-      { type: 'Process', icon: RectangleHorizontal, description: 'Process' },
-      { type: 'Decision', icon: Diamond, description: 'Decision - Yes/No' },
-    ]
-  },
   {
     title: 'Frontend',
     components: [
@@ -63,7 +52,7 @@ export const componentCategories: ComponentCategory[] = [
   }
 ];
 
-/*export const initialNodes: Node[] = [
+export const initialNodes: Node[] = [
   {
     id: '1',
     type: 'custom',
@@ -77,7 +66,7 @@ export const componentCategories: ComponentCategory[] = [
       height: 80,
     },
   },
-];*/
+];
 
 export const initialEdges: Edge[] = [];
 

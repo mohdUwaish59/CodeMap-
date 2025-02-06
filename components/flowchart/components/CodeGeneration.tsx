@@ -7,7 +7,7 @@ import { Loader2, Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { generateCode } from '../services/openai';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CodeBlock } from '@/components/flowchart/components/CodeBlock';
+import { CodeBlock } from './CodeBlock';
 
 interface CodeGenerationProps {
   flowDescription: string;

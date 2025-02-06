@@ -1,5 +1,4 @@
-# CodeMap
-## Map your logic, generate your code.
+# Architecture Flow Designer
 
 A powerful web application for designing system architectures through an intuitive flowchart interface with AI-powered code generation capabilities.
 
@@ -33,7 +32,7 @@ A powerful web application for designing system architectures through an intuiti
 
 ## Tech Stack
 
-- **Frontend Framework**: Next.js with App Router
+- **Frontend Framework**: Next.js 13 with App Router
 - **UI Components**: shadcn/ui + Tailwind CSS
 - **Flowchart Engine**: React Flow
 - **Icons**: Lucide React

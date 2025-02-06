@@ -1,7 +1,5 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FlowchartCanvas } from '@/components/flowchart/components/FlowchartCanvas';
-import { FlowchartProvider } from '@/components/flowchart/context/FlowchartContext';
 import { FlowchartTabs } from '@/components/flowchart/components/FlowchartTabs';
+import { FlowchartProvider } from '@/components/flowchart/context/FlowchartContext';
 
 export default function Home() {
   return (

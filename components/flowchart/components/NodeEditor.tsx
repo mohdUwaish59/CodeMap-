@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { useState } from 'react';
-import { NodeEditorProps } from '@/components/flowchart/types/flowchart.types';
+import { NodeEditorProps } from '../types/flowchart.types';
 
 export default function NodeEditor({ node, onClose, onUpdate }: NodeEditorProps) {
   const [label, setLabel] = useState(node.data.label);

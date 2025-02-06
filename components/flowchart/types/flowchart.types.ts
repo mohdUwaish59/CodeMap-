@@ -33,7 +33,6 @@ export interface FlowDescription {
     relationship: string;
   }[];
   systemArchitecture: {
-    flowchart: any[];
     frontend: any[];
     backend: any[];
     data: any[];
