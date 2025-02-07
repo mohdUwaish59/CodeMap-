@@ -1,74 +1,67 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import ReactFlow, {
-  Node,
-  Edge,
-  Controls,
   Background,
-  applyEdgeChanges,
-  applyNodeChanges,
+  Controls,
   Connection,
   addEdge,
-  MarkerType,
+  applyEdgeChanges,
+  applyNodeChanges,
+  ReactFlowProvider
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import CustomNode from './CustomNode';
 import Sidebar from './Sidebar';
 import NodeEditor from './NodeEditor';
 import JsonViewer from './JsonViewer';
-import { generateFlowDescription } from '../utils/flowchartUtils';
 import { useFlowchartContext } from '../context/FlowchartContext';
 
 const nodeTypes = { custom: CustomNode };
 
 const defaultEdgeOptions = {
   type: 'smoothstep',
-  markerEnd: {
-    type: MarkerType.ArrowClosed,
-    width: 20,
-    height: 20,
-    color: '#000',
-  },
   style: { strokeWidth: 2 },
 };
 
-export function FlowchartCanvas() {
-  const { nodes, edges, setNodes, setEdges, setFlowDescription } = useFlowchartContext();
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-
-  useEffect(() => {
-    const description = generateFlowDescription(nodes, edges);
-    setFlowDescription(description);
-  }, [nodes, edges, setFlowDescription]);
+function FlowchartCanvasContent() {
+  const { 
+    nodes, 
+    edges, 
+    setNodes, 
+    setEdges, 
+    setRfInstance,
+    selectedNode,
+    setSelectedNode 
+  } = useFlowchartContext();
 
   const onNodesChange = useCallback(
-    changes => setNodes(nds => applyNodeChanges(changes, nds)),
+    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [setNodes]
   );
 
   const onEdgesChange = useCallback(
-    changes => setEdges(eds => applyEdgeChanges(changes, eds)),
+    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
     [setEdges]
   );
 
   const onConnect = useCallback(
-    params => setEdges(eds => addEdge({ ...params, ...defaultEdgeOptions }, eds)),
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
-  const updateNodeData = (nodeId: string, newData: any) => {
-    setNodes(nodes.map(node => 
-      node.id === nodeId 
-        ? { ...node, data: { ...node.data, ...newData } }
-        : node
-    ));
+  const updateNodeData = useCallback((nodeId: string, newData: any) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId ? { ...node, data: { ...node.data, ...newData } } : node
+      )
+    );
     setSelectedNode(null);
-  };
+  }, [setNodes, setSelectedNode]);
 
   return (
-    <div className="w-full h-screen flex">
-      <Sidebar nodes={nodes} setNodes={setNodes} />
+    <div className="w-full h-[calc(100vh-12rem)] flex">
+      <Sidebar />
       <div className="flex-1">
         <ReactFlow
           nodes={nodes}
@@ -76,10 +69,11 @@ export function FlowchartCanvas() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onInit={setRfInstance}
           nodeTypes={nodeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
           onNodeClick={(_, node) => setSelectedNode(node)}
-          className="bg-background"
+          fitView
         >
           <Background />
           <Controls />
@@ -92,7 +86,15 @@ export function FlowchartCanvas() {
           />
         )}
       </div>
-      <JsonViewer flowDescription={generateFlowDescription(nodes, edges)} />
+      <JsonViewer />
     </div>
+  );
+}
+
+export function FlowchartCanvas() {
+  return (
+    <ReactFlowProvider>
+      <FlowchartCanvasContent />
+    </ReactFlowProvider>
   );
 }

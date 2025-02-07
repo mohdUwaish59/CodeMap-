@@ -4,12 +4,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FlowchartCanvas } from './FlowchartCanvas';
 import CodeGeneration from './CodeGeneration';
 import { ShareDialog } from './ShareDialog';
+import { SaveDialog } from './SaveDialog';
+import { SavedFlowcharts } from './SavedFlowcharts';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useFlowchartContext } from '../context/FlowchartContext';
-import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
-import { saveFlowchart } from '../services/flowchartService';
-import { toast } from "sonner";
 
 interface FlowchartTabsProps {
   flowchartId?: string;
@@ -17,22 +15,7 @@ interface FlowchartTabsProps {
 
 export function FlowchartTabs({ flowchartId }: FlowchartTabsProps) {
   const { user } = useAuth();
-  const { nodes, edges, flowchartData } = useFlowchartContext();
-
-  const handleSave = async () => {
-    if (!user) {
-      toast.error('Please sign in to save flowcharts');
-      return;
-    }
-
-    try {
-      const id = await saveFlowchart(user.uid, 'My Flowchart', nodes, edges);
-      toast.success('Flowchart saved successfully');
-      window.history.pushState({}, '', `/flowchart/${id}`);
-    } catch (error) {
-      toast.error('Failed to save flowchart');
-    }
-  };
+  const { flowchartData, flowDescription } = useFlowchartContext();
 
   return (
     <div className="h-[calc(100vh-9rem)] flex flex-col">
@@ -41,18 +24,11 @@ export function FlowchartTabs({ flowchartId }: FlowchartTabsProps) {
           <TabsList>
             <TabsTrigger value="flowchart">Flowchart</TabsTrigger>
             <TabsTrigger value="code">Generated Code</TabsTrigger>
+            <TabsTrigger value="saved">Saved Flowcharts</TabsTrigger>
           </TabsList>
           
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSave}
-              className="gap-2"
-            >
-              <Save className="h-4 w-4" />
-              Save
-            </Button>
+            <SaveDialog />
             
             {user && flowchartId && flowchartData && (
               <ShareDialog 
@@ -68,7 +44,11 @@ export function FlowchartTabs({ flowchartId }: FlowchartTabsProps) {
         </TabsContent>
         
         <TabsContent value="code" className="flex-1 mt-0 overflow-auto">
-          <CodeGeneration flowDescription={useFlowchartContext()?.flowDescription || ''} />
+          <CodeGeneration flowDescription={flowDescription} />
+        </TabsContent>
+
+        <TabsContent value="saved" className="flex-1 mt-0 overflow-auto">
+          <SavedFlowcharts />
         </TabsContent>
       </Tabs>
     </div>

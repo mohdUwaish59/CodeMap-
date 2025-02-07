@@ -9,7 +9,6 @@ import {
   updateDoc, 
   arrayUnion, 
   arrayRemove,
-  onSnapshot,
   query,
   where,
   getDocs
@@ -20,8 +19,15 @@ import { nanoid } from 'nanoid';
 export interface FlowchartData {
   id: string;
   name: string;
-  nodes: string; // Store as JSON string
-  edges: string; // Store as JSON string
+  flow: {
+    nodes: Node[];
+    edges: Edge[];
+    viewport?: {
+      x: number;
+      y: number;
+      zoom: number;
+    };
+  };
   createdBy: string;
   sharedWith: string[];
   lastModified: number;
@@ -31,17 +37,28 @@ export interface FlowchartData {
 export const saveFlowchart = async (
   userId: string, 
   name: string,
-  nodes: Node[],
-  edges: Edge[]
+  flow: any
 ): Promise<string> => {
   const flowchartId = nanoid();
   const flowchartRef = doc(db, 'flowcharts', flowchartId);
   
+  // Clean up node data before saving
+  const cleanNodes = flow.nodes.map((node: Node) => ({
+    ...node,
+    data: {
+      ...node.data,
+      icon: null // Remove icon React element before saving
+    }
+  }));
+  
   const flowchart: FlowchartData = {
     id: flowchartId,
     name,
-    nodes: JSON.stringify(nodes),
-    edges: JSON.stringify(edges),
+    flow: {
+      nodes: cleanNodes,
+      edges: flow.edges || [],
+      viewport: flow.viewport
+    },
     createdBy: userId,
     sharedWith: [],
     lastModified: Date.now(),
@@ -49,7 +66,8 @@ export const saveFlowchart = async (
   };
 
   try {
-    await setDoc(flowchartRef, flowchart);
+    const sanitizedFlowchart = JSON.parse(JSON.stringify(flowchart));
+    await setDoc(flowchartRef, sanitizedFlowchart);
     return flowchartId;
   } catch (error) {
     console.error('Error saving flowchart:', error);
@@ -57,43 +75,46 @@ export const saveFlowchart = async (
   }
 };
 
-export const getFlowchart = async (flowchartId: string): Promise<{ 
-  nodes: Node[]; 
-  edges: Edge[]; 
-  data: FlowchartData; 
-} | null> => {
+export const getFlowchart = async (flowchartId: string): Promise<{ data: FlowchartData } | null> => {
   const flowchartRef = doc(db, 'flowcharts', flowchartId);
-  const snapshot = await getDoc(flowchartRef);
-  
-  if (!snapshot.exists()) {
-    return null;
-  }
-  
-  const data = snapshot.data() as FlowchartData;
   
   try {
-    return {
-      nodes: JSON.parse(data.nodes) as Node[],
-      edges: JSON.parse(data.edges) as Edge[],
-      data
-    };
+    const snapshot = await getDoc(flowchartRef);
+    
+    if (!snapshot.exists()) {
+      return null;
+    }
+    
+    const data = snapshot.data() as FlowchartData;
+    return { data };
   } catch (error) {
-    console.error('Error parsing flowchart data:', error);
-    return null;
+    console.error('Error getting flowchart:', error);
+    throw new Error('Failed to get flowchart');
   }
 };
 
-export const updateFlowchartData = async (
-  flowchartId: string,
-  nodes: Node[],
-  edges: Edge[]
-) => {
+export const updateFlowchartData = async (flowchartId: string, flow: any) => {
   const flowchartRef = doc(db, 'flowcharts', flowchartId);
+  
+  // Clean up node data before saving
+  const cleanNodes = flow.nodes.map((node: Node) => ({
+    ...node,
+    data: {
+      ...node.data,
+      icon: null // Remove icon React element before saving
+    }
+  }));
+  
   try {
+    const sanitizedFlow = JSON.parse(JSON.stringify({
+      nodes: cleanNodes,
+      edges: flow.edges || [],
+      viewport: flow.viewport
+    }));
+    
     await updateDoc(flowchartRef, {
-      nodes: JSON.stringify(nodes),
-      edges: JSON.stringify(edges),
-      lastModified: Date.now(),
+      flow: sanitizedFlow,
+      lastModified: Date.now()
     });
   } catch (error) {
     console.error('Error updating flowchart:', error);
@@ -104,33 +125,14 @@ export const updateFlowchartData = async (
 export const shareFlowchart = async (flowchartId: string, userEmail: string) => {
   const flowchartRef = doc(db, 'flowcharts', flowchartId);
   await updateDoc(flowchartRef, {
-    sharedWith: arrayUnion(userEmail),
+    sharedWith: arrayUnion(userEmail)
   });
 };
 
 export const removeSharedUser = async (flowchartId: string, userEmail: string) => {
   const flowchartRef = doc(db, 'flowcharts', flowchartId);
   await updateDoc(flowchartRef, {
-    sharedWith: arrayRemove(userEmail),
-  });
-};
-
-export const subscribeToFlowchart = (
-  flowchartId: string,
-  callback: (nodes: Node[], edges: Edge[], data: FlowchartData) => void
-) => {
-  const flowchartRef = doc(db, 'flowcharts', flowchartId);
-  return onSnapshot(flowchartRef, (snapshot) => {
-    if (snapshot.exists()) {
-      const data = snapshot.data() as FlowchartData;
-      try {
-        const nodes = JSON.parse(data.nodes) as Node[];
-        const edges = JSON.parse(data.edges) as Edge[];
-        callback(nodes, edges, data);
-      } catch (error) {
-        console.error('Error parsing flowchart data:', error);
-      }
-    }
+    sharedWith: arrayRemove(userEmail)
   });
 };
 
@@ -141,20 +143,13 @@ export const getUserFlowcharts = async (userId: string) => {
     where('createdBy', '==', userId)
   );
   
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => {
-    const data = doc.data() as FlowchartData;
-    try {
-      return {
-        ...data,
-        nodes: JSON.parse(data.nodes),
-        edges: JSON.parse(data.edges)
-      };
-    } catch (error) {
-      console.error('Error parsing flowchart data:', error);
-      return data;
-    }
-  });
+  try {
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as FlowchartData);
+  } catch (error) {
+    console.error('Error getting user flowcharts:', error);
+    throw new Error('Failed to get user flowcharts');
+  }
 };
 
 export const getSharedFlowcharts = async (userEmail: string) => {
@@ -164,18 +159,11 @@ export const getSharedFlowcharts = async (userEmail: string) => {
     where('sharedWith', 'array-contains', userEmail)
   );
   
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => {
-    const data = doc.data() as FlowchartData;
-    try {
-      return {
-        ...data,
-        nodes: JSON.parse(data.nodes),
-        edges: JSON.parse(data.edges)
-      };
-    } catch (error) {
-      console.error('Error parsing flowchart data:', error);
-      return data;
-    }
-  });
+  try {
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as FlowchartData);
+  } catch (error) {
+    console.error('Error getting shared flowcharts:', error);
+    throw new Error('Failed to get shared flowcharts');
+  }
 };
